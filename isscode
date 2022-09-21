@@ -1,0 +1,51 @@
+import requests
+import datetime
+import smtplib
+import time
+
+my_email = "youremail"
+my_password = "yourpassword"
+my_lat = 52.478120
+my_lng = -1.847260
+parameters = {"lat": my_lat,
+              "lng": my_lng,
+              "formatted": 0,
+              }
+
+
+def is_dark():
+    response2 = requests.get(url="https://api.sunrise-sunset.org/json", params=parameters)
+    response2.raise_for_status()
+    sunrise_hour = response2.json()["results"]["sunrise"].split("T")[1].split(":")[0]
+    sunset_hour = response2.json()["results"]["sunset"].split("T")[1].split(":")[0]
+    current_hour = datetime.datetime.now().hour
+    if current_hour >= int(sunset_hour) or current_hour <= int(sunrise_hour):
+        return True
+
+def is_overhead():
+    response = requests.get(url="http://api.open-notify.org/iss-now.json")
+    response.raise_for_status()
+    iss_position = response.json()["iss_position"]
+
+    longitude = float(iss_position["longitude"])
+    latitude = float(iss_position["latitude"])
+
+
+    return longitude, latitude
+
+
+def is_in_position():
+    longitude, latitude = is_overhead()
+    if my_lng - 5 <= longitude <= my_lng + 5 and my_lat - 5 <= latitude <= my_lat + 5:
+        return True
+
+while True:
+    time.sleep(100)
+    if is_in_position() and is_dark() == True:
+        with smtplib.SMTP("smtp-mail.outlook.com") as connection:
+            connection.starttls()
+            connection.login(my_email, my_password)
+            connection.sendmail(from_addr=my_email, to_addrs=my_email,
+                                msg="Subject:Look Up!\n\nISS is Overhead!")
+
+
