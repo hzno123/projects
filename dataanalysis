@@ -1,0 +1,29 @@
+# import the needed packages
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas
+
+#open the saved csv file in pandas
+filepath = "/Users/h-4-1/Desktop/alvsb1.csv"
+file = pandas.read_csv(filepath, index_col=0)
+
+#values in the hours worked and bonus columns
+bonus = file.iloc[:,1]
+hours = file.iloc[:,0]
+
+#corellation and covariance
+co_eff = np.corrcoef(bonus, hours)[0,1]
+covariance = np.cov(bonus, hours)[0][1]
+
+#create scatter plot with coefficient
+plt.scatter(file.VacationHours, file.Bonus, marker="x", c="green")
+# trend line
+z = np.polyfit(hours,bonus,1)
+p = np.poly1d(z)
+plt.plot(hours, p(hours), 'r--')
+
+#scatter title and x,y labels
+plt.title("Relationship between time spent on annual leave and bonus received")
+plt.xlabel("Annual Leave (Hours)")
+plt.ylabel("Bonus (£'s)")
+plt.show()
